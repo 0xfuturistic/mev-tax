@@ -15,13 +15,6 @@ contract MEVTax {
         _paidAmount += msg.value;
     }
 
-    // TODO: add onlyOwner modifier
-    function withdraw(address _to) external {
-        uint256 paidAmount = _paidAmount;
-        _paidAmount = 0;
-        payable(_to).transfer(paidAmount);
-    }
-
     function _tax() internal {
         uint256 taxAmount = _getTaxAmount();
         assembly {
