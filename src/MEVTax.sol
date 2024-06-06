@@ -1,61 +1,52 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.24;
 
 contract MEVTax {
-    address public owner;
-    uint256 public taxRate; // Multiplier for the MEV tax (e.g., 99 for 99%)
+    bytes32 internal TAXED_SLOT = keccak256("MEVTax.taxed");
 
-    event TaxCollected(address indexed from, uint256 amount, uint256 priorityFee);
-    event TaxDistributed(address indexed to, uint256 amount);
-    event TaxRateChanged(uint256 newRate);
+    uint256 internal _paidAmount;
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Not the contract owner");
+    modifier tax() {
         _;
+        _tax();
     }
 
-    constructor(uint256 initialTaxRate) {
-        require(initialTaxRate > 0, "Tax rate must be greater than zero");
-        owner = msg.sender;
-        taxRate = initialTaxRate;
+    function pay() external payable {
+        _paidAmount += msg.value;
     }
 
-    function setTaxRate(uint256 newRate) external onlyOwner {
-        require(newRate > 0, "Tax rate must be greater than zero");
-        taxRate = newRate;
-        emit TaxRateChanged(newRate);
+    // TODO: add onlyOwner modifier
+    function withdraw(address _to) external {
+        uint256 paidAmount = _paidAmount;
+        _paidAmount = 0;
+        payable(_to).transfer(paidAmount);
     }
 
-    function getPriorityFeePerGas() public view returns (uint256) {
-        // Calculate the priority fee per gas
+    function _tax() internal {
+        uint256 taxAmount = _getTaxAmount();
+        assembly {
+            if xor(tload(TAXED_SLOT.slot), true) {
+                tstore(TAXED_SLOT.slot, true)
+
+                // greater than or equal to
+                if or(xor(sload(_paidAmount.slot), taxAmount), gt(sload(_paidAmount.slot), taxAmount)) {
+                    mstore(0x00, 0xac977714) // 0xac977714 is the 4-byte selector of "NotEnoughPaid()"
+                    revert(0x1C, 0x04) // returns the stored 4-byte selector from above
+                }
+            }
+        }
+        _afterTax(taxAmount);
+    }
+
+    // function to be overridden by tax function implementation
+    function _getTaxAmount() internal view virtual returns (uint256) {
+        return _getPriorityFee() * 99;
+    }
+
+    function _getPriorityFee() internal view returns (uint256) {
         return tx.gasprice - block.basefee;
     }
 
-    function imposeMEVTax() external payable {
-        uint256 priorityFeePerGas = getPriorityFeePerGas();
-        uint256 totalGasUsed = gasleft();
-        uint256 priorityFee = priorityFeePerGas * totalGasUsed;
-
-        uint256 taxAmount = taxRate * priorityFee;
-        require(msg.value >= taxAmount, "Insufficient tax payment");
-
-        emit TaxCollected(msg.sender, taxAmount, priorityFee);
-    }
-
-    function distributeTaxRevenue(address payable[] memory recipients, uint256[] memory amounts) external onlyOwner {
-        require(recipients.length == amounts.length, "Recipients and amounts length mismatch");
-
-        for (uint256 i = 0; i < recipients.length; i++) {
-            recipients[i].transfer(amounts[i]);
-            emit TaxDistributed(recipients[i], amounts[i]);
-        }
-    }
-
-    function withdraw() external onlyOwner {
-        payable(owner).transfer(address(this).balance);
-    }
-
-    receive() external payable {}
-
-    fallback() external payable {}
+    /// use this function to implement the tax logic, such as transferring the tax amount to a treasury address
+    function _afterTax(uint256 _taxAmount) internal virtual {}
 }
