@@ -7,26 +7,28 @@ error NotEnoughPaid();
 /// @title MEVTax
 /// @notice This contract should be inherited by contracts to apply a MEV tax.
 ///         The tax amount is calculated as a function of the priority fee per
-///         gas of the transaction. Solvers pay the tax in anticipation of the
-///         function call that applies the tax.
+///         gas of the transaction. Solvers (or whomever) pay the tax amount
+///         in anticipation of the function call that applies the tax.
 contract MEVTax {
-    /// @notice Amount paid to cover taxes but not yet used (in wei)
+    /// @notice Amount paid for covering taxes but not used so far.
     uint256 internal _paidAmount;
 
-    /// @notice Modifier to apply tax on function calls
+    /// @notice Applies tax before an arbitrary function. If the paid amount is
+    ///         not enough to cover the tax, the modifier reverts.
     modifier applyTax() {
         _applyTax();
         _;
     }
 
-    /// @notice Pays tax in anticipation of a function call that applies tax
+    /// @notice Used to pay tax amount for a future function call that applies tax.
     ///         This function should be called by the solver to pay the tax
-    ///         before calling the function that applies tax.
+    ///         before the user's transaction.
     function payTax() external payable virtual {
         _paidAmount += msg.value;
     }
 
-    /// @notice Checks if the paid amount is sufficient to cover the tax.
+    /// @notice Applies tax if the paid amount is sufficient to cover the tax.
+    ///         Otherwise, the function reverts.
     function _applyTax() internal {
         uint256 taxAmount = _getTaxAmount();
         if (_paidAmount < taxAmount) {
@@ -35,8 +37,9 @@ contract MEVTax {
         _paidAmount -= taxAmount;
     }
 
-    /// @notice Returns the tax amount as a function of the priority fee per gas
-    ///         of the transaction. Should be overridden to customize tax function.
+    /// @notice Returns the tax amount, which is defined as a function of the
+    ///         priority fee per gas of the transaction.
+    /// @dev    This function should be overriden to implement custom tax function.
     /// @return The tax amount as a function of the priority fee per gas.
     function _getTaxAmount() internal view virtual returns (uint256) {
         return _getPriorityFeePerGas() * 99;
