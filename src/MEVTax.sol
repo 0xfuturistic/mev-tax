@@ -10,31 +10,23 @@ error NotEnoughPaid();
 ///         gas of the transaction. Solvers (or whomever) pay the tax amount
 ///         in anticipation of the function call that applies the tax.
 contract MEVTax {
-    /// @notice Amount paid for covering taxes but not used so far.
-    uint256 internal _paidAmount;
+    address payable public recipient;
 
     /// @notice Applies tax before an arbitrary function. If the paid amount is
     ///         not enough to cover the tax, the modifier reverts.
     modifier applyTax() {
-        _applyTax();
         _;
-    }
-
-    /// @notice Used to pay tax amount for a future function call that applies tax.
-    ///         This function should be called by the solver to pay the tax
-    ///         before the user's transaction.
-    function payTax() external payable virtual {
-        _paidAmount += msg.value;
+        _payTax();
     }
 
     /// @notice Applies tax if the paid amount is sufficient to cover the tax.
     ///         Otherwise, the function reverts.
-    function _applyTax() internal {
+    function _payTax() internal {
         uint256 taxAmount = _getTaxAmount();
-        if (_paidAmount < taxAmount) {
+        if (msg.value < taxAmount) {
             revert NotEnoughPaid();
         }
-        _paidAmount -= taxAmount;
+        recipient.transfer(taxAmount);
     }
 
     /// @notice Returns the tax amount, which is defined as a function of the
