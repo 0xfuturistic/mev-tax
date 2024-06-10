@@ -1,4 +1,4 @@
-# 💸 MEV-Tax: A Solidity Library for MEV Capturing
+# MEV-Tax: A Solidity Library for MEV Capturing
 
 MEV-Tax allows smart contracts to capture their own MEV by implementing [a MEV tax mechanism](https://www.paradigm.xyz/2024/06/priority-is-all-you-need). It provides a simple way for developers to incorporate MEV taxes into their contracts, enabling them to recapture value that would otherwise be lost to MEV searchers.
 
