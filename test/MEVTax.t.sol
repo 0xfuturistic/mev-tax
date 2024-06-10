@@ -2,13 +2,14 @@
 pragma solidity ^0.8.13;
 
 import {Test} from "forge-std/Test.sol";
-import {MEVTax, NotEnoughPaid} from "../src/MEVTax.sol";
+import {MEVTax} from "../src/MEVTax.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @title MEVTaxWithTaxApplied
 /// @notice This contract exposes a function with the applyTax modifier.
 contract MEVTaxWithTaxApplied is MEVTax {
     /// @notice Mock function that applies the tax.
-    function mockTaxed() external applyTax {}
+    function mockTaxed() external payable applyTax {}
 }
 
 contract MEVTaxTest is Test {
@@ -18,20 +19,28 @@ contract MEVTaxTest is Test {
         mevTax = new MEVTaxWithTaxApplied();
     }
 
-    /// @dev Tests that payTax succeeds for an arbitrary amount of wei.
-    function testFuzz_payTax_succeeds(uint256 _amount) public {
-        // make sure the contract has enough balance to pay the tax
-        vm.deal(address(this), _amount);
+    /// @dev Tests that the recipient is updated successfully by the owner.
+    function test_updateRecipient_owner_succeeds(address payable _recipient) public {
+        mevTax.updateRecipient(_recipient);
+        assertEq(mevTax.recipient(), _recipient);
+    }
 
-        assertEq(address(mevTax).balance, 0);
-        mevTax.payTax{value: _amount}();
-        assertEq(address(mevTax).balance, _amount);
+    /// @dev Tests that the recipient is not updated by a non-owner.
+    function test_updateRecipient_notOwner_reverts(address payable _recipient) public {
+        vm.expectRevert();
+        vm.prank(address(0));
+        mevTax.updateRecipient(_recipient);
     }
 
     /// @dev Tests that applyTax succeeds when the paid amount is sufficient to cover the tax.
-    function testFuzz_applyTax_sufficientPaidAmount_succeeds(uint256 _txGasPrice, uint256 _baseFee, uint256 _paidAmount)
-        public
-    {
+    function testFuzz_applyTax_sufficientPaidAmount_succeeds(
+        address payable _recipient,
+        uint256 _txGasPrice,
+        uint256 _baseFee,
+        uint256 _paidAmount
+    ) public {
+        assumeNotPrecompile(_recipient);
+        assumePayable(_recipient);
         // assume a priority fee equal or greater than zero
         vm.assume(_txGasPrice >= _baseFee);
         uint256 priorityFeePerGas = _txGasPrice - _baseFee;
@@ -45,10 +54,16 @@ contract MEVTaxTest is Test {
         // bound the paid amount to be equal or greater than the tax amount
         _paidAmount = bound(_paidAmount, taxAmount, type(uint256).max);
 
-        // make sure the tax is paid for
-        testFuzz_payTax_succeeds(_paidAmount);
+        // set the recipient
+        mevTax.updateRecipient(_recipient);
+        assertEq(mevTax.recipient(), _recipient);
 
-        mevTax.mockTaxed();
+        // ensure the contract has enough balance to transfer paid amount
+        vm.deal(address(this), _paidAmount);
+
+        vm.expectCall(_recipient, taxAmount, "");
+
+        mevTax.mockTaxed{value: _paidAmount}();
     }
 
     /// @dev Tests that applyTax reverts when the paid amount is insufficient to cover the tax.
@@ -71,10 +86,10 @@ contract MEVTaxTest is Test {
         vm.assume(taxAmount > 0);
         _paidAmount = bound(_paidAmount, 0, taxAmount - 1);
 
-        // make sure the tax is not paid for
-        testFuzz_payTax_succeeds(_paidAmount);
+        // ensure the contract has enough balance to transfer paid amount
+        vm.deal(address(this), _paidAmount);
 
-        vm.expectRevert(NotEnoughPaid.selector);
-        mevTax.mockTaxed();
+        vm.expectRevert(MEVTax.NotEnoughPaid.selector);
+        mevTax.mockTaxed{value: _paidAmount}();
     }
 }

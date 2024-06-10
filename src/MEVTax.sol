@@ -1,32 +1,42 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-/// @notice Error to be used when the paid amount is not enough to cover the tax.
-error NotEnoughPaid();
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @title MEVTax
 /// @notice This contract should be inherited by contracts to apply a MEV tax.
 ///         The tax amount is calculated as a function of the priority fee per
-///         gas of the transaction. Solvers (or whomever) pay the tax amount
-///         in anticipation of the function call that applies the tax.
-contract MEVTax {
-    address payable public recipient;
+///         gas of the transaction.
+contract MEVTax is Ownable {
+    /// @notice The recipient of the tax payments.
+    address payable public recipient = payable(address(this));
 
-    /// @notice Applies tax before an arbitrary function. If the paid amount is
-    ///         not enough to cover the tax, the modifier reverts.
+    /// @notice Error to be used when the paid amount is not enough to cover the tax.
+    error NotEnoughPaid();
+
+    /// @notice Modifier to apply tax on a function. If the paid amount (msg.value)
+    ///         is not enough to cover the tax, the modifier reverts.
     modifier applyTax() {
         _;
         _payTax();
     }
 
+    /// @notice Sets the deployer as the initial owner.
+    constructor() Ownable(msg.sender) {}
+
+    /// @notice Sets the recipient of the tax payments.
+    /// @param _recipient The new recipient of the tax payments.
+    function setRecipient(address payable _recipient) external onlyOwner {
+        recipient = _recipient;
+    }
+
     /// @notice Applies tax if the paid amount is sufficient to cover the tax.
     ///         Otherwise, the function reverts.
+    // TODO: check that this makes sense when the tx already includes msg.value
     function _payTax() internal {
         uint256 taxAmount = _getTaxAmount();
-        if (msg.value < taxAmount) {
-            revert NotEnoughPaid();
-        }
-        recipient.transfer(taxAmount);
+        if (msg.value < taxAmount) revert NotEnoughPaid();
+        if (recipient != address(this)) recipient.transfer(taxAmount);
     }
 
     /// @notice Returns the tax amount, which is defined as a function of the
