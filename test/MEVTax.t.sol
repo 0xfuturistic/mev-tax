@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Test} from "forge-std/Test.sol";
-import {MEVTax} from "../src/MEVTax.sol";
+import {MEVTax, NotEnoughPaid} from "../src/MEVTax.sol";
 
 contract MEVTaxWithTaxApplied is MEVTax {
     function mockTaxed() external applyTax {}
@@ -68,7 +68,7 @@ contract MEVTaxTest is Test {
         // make sure the tax is not paid for
         testFuzz_payTax_succeeds(_paidAmount);
 
-        vm.expectRevert("NotEnoughPaid()");
+        vm.expectRevert(NotEnoughPaid.selector);
         mevTax.mockTaxed();
     }
 }

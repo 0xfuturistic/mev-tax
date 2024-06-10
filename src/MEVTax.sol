@@ -1,16 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-/// @title MEV Tax contract
-/// @notice This contract is to be inherited from to access modifier for
-///         applying a priority-fee based tax on function calls.
+/// @notice Error to be used when the paid amount is not enough to cover the tax.
+error NotEnoughPaid();
+
+/// @title MEVTax
+/// @notice This contract should be inherited by contracts to apply a MEV tax.
+///         The tax amount is calculated as a function of the priority fee per
+///         gas of the transaction. Solvers pay the tax in anticipation of the
+///         function call that applies the tax.
 contract MEVTax {
-    /// @notice Amount of ETH paid for tax but not yet used
+    /// @notice Amount paid to cover taxes but not yet used (in wei)
     uint256 internal _paidAmount;
 
     /// @notice Modifier to apply tax on function calls
     modifier applyTax() {
-        _checkTaxPayment();
+        _applyTax();
         _;
     }
 
@@ -22,10 +27,10 @@ contract MEVTax {
     }
 
     /// @notice Checks if the paid amount is sufficient to cover the tax.
-    function _checkTaxPayment() internal {
+    function _applyTax() internal {
         uint256 taxAmount = _getTaxAmount();
         if (_paidAmount < taxAmount) {
-            revert("NotEnoughPaid()");
+            revert NotEnoughPaid();
         }
         _paidAmount -= taxAmount;
     }
