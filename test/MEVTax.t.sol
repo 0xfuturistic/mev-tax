@@ -21,7 +21,7 @@ contract MEVTaxTest is Test {
 
     /// @dev Tests that the recipient is updated successfully by the owner.
     function test_updateRecipient_owner_succeeds(address payable _recipient) public {
-        mevTax.updateRecipient(_recipient);
+        mevTax.setRecipient(_recipient);
         assertEq(mevTax.recipient(), _recipient);
     }
 
@@ -29,7 +29,7 @@ contract MEVTaxTest is Test {
     function test_updateRecipient_notOwner_reverts(address payable _recipient) public {
         vm.expectRevert();
         vm.prank(address(0));
-        mevTax.updateRecipient(_recipient);
+        mevTax.setRecipient(_recipient);
     }
 
     /// @dev Tests that applyTax succeeds when the paid amount is sufficient to cover the tax.
@@ -55,7 +55,7 @@ contract MEVTaxTest is Test {
         _paidAmount = bound(_paidAmount, taxAmount, type(uint256).max);
 
         // set the recipient
-        mevTax.updateRecipient(_recipient);
+        mevTax.setRecipient(_recipient);
         assertEq(mevTax.recipient(), _recipient);
 
         // ensure the contract has enough balance to transfer paid amount
