@@ -1,66 +1,40 @@
-## Foundry
+# 💸 MEV-Tax: A Solidity Library for MEV Capturing
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+MEV-Tax allows smart contracts to capture their own MEV by implementing [a MEV tax mechanism](https://www.paradigm.xyz/2024/06/priority-is-all-you-need). It provides a simple way for developers to incorporate MEV taxes into their contracts, enabling them to recapture value that would otherwise be lost to MEV searchers.
 
-Foundry consists of:
+## Features
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+- Easy integration with existing smart contracts
+- Robust tax calculation based on transaction priority fee
+- Customizable tax recipient
+- Enables various use cases for MEV mitigation (e.g., DEX routers, AMMs, backrunning auctions)
 
-## Documentation
+## How it Works
 
-https://book.getfoundry.sh/
+Background: [Priority Is All You Need](https://www.paradigm.xyz/2024/06/priority-is-all-you-need) by Paradigm.
 
-## Usage
 
-### Build
+The library calculates a tax amount based on the priority fee per gas of the transaction. When a function with the `applyTax()` modifier is called, the library checks if the paid amount (`msg.value`) is sufficient to cover the tax. If so, the transaction proceeds, and the tax is transferred to the designated recipient. Otherwise, the transaction reverts.
 
-```shell
-$ forge build
+## Getting Started
+
+1. Install the library in your Solidity project
+```bash
+forge install 0xfuturistic/mev-tax
 ```
-
-### Test
-
-```shell
-$ forge test
+2. Import and inherit `MEVTax.sol` in your smart contract
+```solidity
+import "mev-tax/src/MEVTax.sol";
 ```
+3. Apply the `applyTax()` modifier to functions where you want to capture MEV
+4. Optionally, override the `_getTaxAmount()` function for a custom tax function
 
-### Format
+## Limitations
 
-```shell
-$ forge fmt
-```
+The library relies on the assumption of competitive priority ordering, which means it only works for L2s like Base and Optimism, where there's a trusted sequencer, but not for Ethereum Mainnet. Enforcing these rules trustlessly is an open problem.
 
-### Gas Snapshots
+## Contribute & Feedback
 
-```shell
-$ forge snapshot
-```
+Feel free to raise an issue, suggest a feature, or even fork the repository for personal tweaks. If you'd like to contribute, please fork the repository and make changes as you'd like. Pull requests are warmly welcome.
 
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+For questions and feedback, you can also reach out via [Twitter](https://twitter.com/0xfuturistic).
