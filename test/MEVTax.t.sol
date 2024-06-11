@@ -55,14 +55,9 @@ contract MEVTaxTest is Test {
 
     /// @dev Tests that applyTax succeeds when the paid amount is sufficient to
     ///      cover the tax.
-    function testFuzz_applyTax_sufficientPaidAmount_succeeds(
-        address _recipient,
-        uint256 _txGasPrice,
-        uint256 _baseFee,
-        uint256 _paidAmount
-    ) public {
-        assumeNotPrecompile(_recipient);
-        assumePayable(_recipient);
+    function testFuzz_applyTax_sufficientPaidAmount_succeeds(uint256 _txGasPrice, uint256 _baseFee, uint256 _paidAmount)
+        public
+    {
         // assume a priority fee equal or greater than zero
         vm.assume(_txGasPrice >= _baseFee);
         uint256 priorityFeePerGas = _txGasPrice - _baseFee;
@@ -86,7 +81,7 @@ contract MEVTaxTest is Test {
 
         // check that the tax was paid
         assertEq(mockCurrency.balanceOf(address(this)), _paidAmount - taxAmount);
-        assertEq(mockCurrency.balanceOf(_recipient), taxAmount);
+        assertEq(mockCurrency.balanceOf(mockRecipient), taxAmount);
     }
 
     /// @dev Tests that applyTax reverts when the paid amount is insufficient to
