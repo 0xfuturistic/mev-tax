@@ -75,7 +75,7 @@ contract MEVTaxTest is Test {
         vm.txGasPrice(_txGasPrice);
         vm.fee(_baseFee);
         // calculate the tax amount
-        uint256 taxAmount = priorityFeePerGas * 99;
+        uint256 taxAmount = mevTax.tax(priorityFeePerGas);
         // bound the amount to be equal or greater than the tax amount
         _amount = bound(_amount, taxAmount, type(uint256).max);
 
@@ -107,7 +107,7 @@ contract MEVTaxTest is Test {
         vm.txGasPrice(_txGasPrice);
         vm.fee(_baseFee);
         // calculate the tax amount
-        uint256 taxAmount = priorityFeePerGas * 99;
+        uint256 taxAmount = mevTax.tax(priorityFeePerGas);
         // bound the paid amount to be less than the tax amount
         vm.assume(taxAmount > 0);
         _amount = bound(_amount, 0, taxAmount - 1);
