@@ -19,7 +19,7 @@ contract MEVTax is Ownable {
     ///         If applying the tax fails, the modifier reverts.
     modifier applyTax() {
         _;
-        _payTax();
+        _applyTax();
     }
 
     /// @dev Sets the deployer as the initial owner.
@@ -48,9 +48,9 @@ contract MEVTax is Ownable {
         return 99 * _priorityFeePerGas;
     }
 
-    /// @notice Applies tax by transferring the tax amount (at the priority fee per gas)
+    /// @notice Applies tax by transferring the tax amount (at the tx's priority fee per gas)
     ///         from msg.sender to recipient. If the transfer fails, _payTax reverts.
-    function _payTax() internal {
+    function _applyTax() internal {
         require(currency.transferFrom(msg.sender, recipient, tax(_getPriorityFeePerGas())));
     }
 
