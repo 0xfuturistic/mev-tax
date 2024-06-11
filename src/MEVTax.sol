@@ -41,7 +41,7 @@ contract MEVTax is Ownable {
     /// @notice Applies tax if the paid amount is sufficient to cover the tax.
     ///         Otherwise, the function reverts.
     function _payTax() internal {
-        currency.transferFrom(msg.sender, recipient, _getTaxAmount());
+        require(currency.transferFrom(msg.sender, recipient, _getTaxAmount()));
     }
 
     /// @notice Returns the tax amount, which is defined as a function of the
