@@ -30,7 +30,7 @@ contract MEVTax is Ownable {
     /// @dev    Override this function to implement an arbitrary tax function.
     /// @param  _priorityFeePerGas Priority fee per gas to input to the tax function.
     /// @return Output of the tax function (the tax amount for _priorityFeePerGas).
-    function tax(uint256 _priorityFeePerGas) internal view virtual returns (uint256) {
+    function tax(uint256 _priorityFeePerGas) public view virtual returns (uint256) {
         return 99 * _priorityFeePerGas;
     }
 
