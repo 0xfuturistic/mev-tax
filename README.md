@@ -13,7 +13,6 @@ MEV-Tax provides a simple way for developers to incorporate [MEV taxes](https://
 
 Background: [Priority Is All You Need](https://www.paradigm.xyz/2024/06/priority-is-all-you-need) by Paradigm.
 
-
 The library calculates a tax amount based on the priority fee per gas of the transaction. When a function with the `applyTax()` modifier is called, the library checks if the paid amount (`msg.value`) is sufficient to cover the tax. If so, the transaction proceeds, and the tax is transferred to the designated recipient. Otherwise, the transaction reverts.
 
 ## Getting Started

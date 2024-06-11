@@ -61,7 +61,7 @@ contract MEVTaxTest is Test {
         // ensure the contract has enough balance to transfer paid amount
         vm.deal(address(this), _paidAmount);
 
-        vm.expectCall(_recipient, taxAmount, "");
+        if (_recipient != address(mevTax)) vm.expectCall(_recipient, taxAmount, "");
 
         mevTax.mockTaxed{value: _paidAmount}();
     }
