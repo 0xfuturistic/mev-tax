@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /// @title MEVTax
 /// @notice This contract should be inherited by contracts to apply a MEV tax.
@@ -10,13 +10,10 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 ///         gas of the transaction.
 contract MEVTax is Ownable {
     /// @notice The currency used to pay the tax.
-    ERC20 public currency;
+    address public currency;
 
     /// @notice The recipient of the tax payments.
     address public recipient = address(this);
-
-    /// @notice Error to be used when the paid amount is not enough to cover the tax.
-    error NotEnoughPaid();
 
     /// @notice Modifier to apply tax on a function. If the paid amount (msg.value)
     ///         is not enough to cover the tax, the modifier reverts.
@@ -28,6 +25,12 @@ contract MEVTax is Ownable {
     /// @notice Sets the deployer as the initial owner.
     constructor() Ownable(msg.sender) {}
 
+    /// @notice Sets the currency used to pay the tax.
+    /// @param _currency The new currency used to pay the tax.
+    function setCurrency(address _currency) external onlyOwner {
+        currency = _currency;
+    }
+
     /// @notice Sets the recipient of the tax payments.
     /// @param _recipient The new recipient of the tax payments.
     function setRecipient(address payable _recipient) external onlyOwner {
@@ -37,9 +40,7 @@ contract MEVTax is Ownable {
     /// @notice Applies tax if the paid amount is sufficient to cover the tax.
     ///         Otherwise, the function reverts.
     function _payTax() internal {
-        uint256 taxAmount = _getTaxAmount();
-        if (msg.value < taxAmount) revert NotEnoughPaid();
-        if (recipient != address(this)) currency.transfer(recipient, taxAmount);
+        IERC20(currency).transferFrom(msg.sender, recipient, _getTaxAmount());
     }
 
     /// @notice Returns the tax amount, which is defined as a function of the

@@ -89,7 +89,7 @@ contract MEVTaxTest is Test {
         // ensure the contract has enough balance to transfer paid amount
         vm.deal(address(this), _paidAmount);
 
-        vm.expectRevert(MEVTax.NotEnoughPaid.selector);
+        vm.expectRevert();
         mevTax.mockTaxed{value: _paidAmount}();
     }
 }
