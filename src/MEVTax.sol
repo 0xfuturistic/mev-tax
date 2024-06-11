@@ -9,8 +9,8 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 ///         The tax amount is calculated as a function of the priority fee per
 ///         gas of the transaction.
 contract MEVTax is Ownable {
-    /// @notice The currency used to pay the tax.
-    address public currency;
+    /// @notice The ERC20 token used to pay the tax.
+    IERC20 public currency;
 
     /// @notice The recipient of the tax payments.
     address public recipient = address(this);
@@ -26,9 +26,9 @@ contract MEVTax is Ownable {
     constructor() Ownable(msg.sender) {}
 
     /// @notice Sets the currency used to pay the tax.
-    /// @param _currency The new currency used to pay the tax.
-    function setCurrency(address _currency) external onlyOwner {
-        // TODO: enforce that the address is a valid ERC20 receiver
+    /// @param _currency The new ERC20 token used to pay the tax.
+    function setCurrency(IERC20 _currency) external onlyOwner {
+        // TODO: could enforce that the address is a valid ERC20 receiver
         currency = _currency;
     }
 
@@ -41,7 +41,7 @@ contract MEVTax is Ownable {
     /// @notice Applies tax if the paid amount is sufficient to cover the tax.
     ///         Otherwise, the function reverts.
     function _payTax() internal {
-        IERC20(currency).transferFrom(msg.sender, recipient, _getTaxAmount());
+        currency.transferFrom(msg.sender, recipient, _getTaxAmount());
     }
 
     /// @notice Returns the tax amount, which is defined as a function of the
