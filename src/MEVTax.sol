@@ -25,19 +25,9 @@ contract MEVTax is Ownable {
     /// @dev Sets the deployer as the initial owner.
     constructor() Ownable(msg.sender) {}
 
-    /// @notice Computes the tax function for an arbitrary _priorityFeePerGas.
-    ///         Unless overridden, it is 99 times the priority fee per gas.
-    /// @dev    Override this function to implement an arbitrary tax function.
-    /// @param  _priorityFeePerGas Priority fee per gas to input to the tax function.
-    /// @return Output of the tax function (the tax amount for _priorityFeePerGas).
-    function tax(uint256 _priorityFeePerGas) public view virtual returns (uint256) {
-        return 99 * _priorityFeePerGas;
-    }
-
     /// @notice Updates currency to _currency.
     /// @param _currency ERC20 token setting _currency to.
     function setCurrency(IERC20 _currency) external onlyOwner {
-        // TODO: could enforce that the address is a valid ERC20 receiver
         currency = _currency;
     }
 
@@ -45,6 +35,15 @@ contract MEVTax is Ownable {
     /// @param _recipient Address setting recipient to.
     function setRecipient(address _recipient) external onlyOwner {
         recipient = _recipient;
+    }
+
+    /// @notice Computes the tax function for an arbitrary _priorityFeePerGas.
+    ///         Unless overridden, it is 99 times the priority fee per gas.
+    /// @dev    Override this function to implement an arbitrary tax function.
+    /// @param  _priorityFeePerGas Priority fee per gas to input to the tax function.
+    /// @return Output of the tax function (the tax amount for _priorityFeePerGas).
+    function tax(uint256 _priorityFeePerGas) public view virtual returns (uint256) {
+        return 99 * _priorityFeePerGas;
     }
 
     /// @notice Applies tax by transferring the tax amount (at the priority fee per gas)
