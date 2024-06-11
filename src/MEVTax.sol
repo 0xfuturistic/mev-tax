@@ -25,12 +25,11 @@ contract MEVTax is Ownable {
     /// @dev Sets the deployer as the initial owner.
     constructor() Ownable(msg.sender) {}
 
-    /// @notice Returns the tax amount for _priorityFeePerGas according to
-    ///         tax function. Unless overridden, the tax function is 99 times
-    ///         the priority fee per gas.
+    /// @notice Computes the tax function for an arbitrary _priorityFeePerGas.
+    ///         Unless overridden, it is 99 times the priority fee per gas.
     /// @dev    Override this function to implement an arbitrary tax function.
     /// @param  _priorityFeePerGas Priority fee per gas to input to the tax function.
-    /// @return Output of the tax function (tax amount for _priorityFeePerGas).
+    /// @return Output of the tax function (the tax amount for _priorityFeePerGas).
     function tax(uint256 _priorityFeePerGas) internal view virtual returns (uint256) {
         return 99 * _priorityFeePerGas;
     }
@@ -48,7 +47,7 @@ contract MEVTax is Ownable {
         recipient = _recipient;
     }
 
-    /// @notice Applies tax by transferring the tax amount at the priority fee per gas
+    /// @notice Applies tax by transferring the tax amount (at the priority fee per gas)
     ///         from msg.sender to recipient. If the transfer fails, _payTax reverts.
     function _payTax() internal {
         require(currency.transferFrom(msg.sender, recipient, tax(_getPriorityFeePerGas())));
