@@ -2,14 +2,18 @@
 pragma solidity ^0.8.13;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /// @title MEVTax
 /// @notice This contract should be inherited by contracts to apply a MEV tax.
 ///         The tax amount is calculated as a function of the priority fee per
 ///         gas of the transaction.
 contract MEVTax is Ownable {
+    /// @notice The currency used to pay the tax.
+    ERC20 public currency;
+
     /// @notice The recipient of the tax payments.
-    address payable public recipient = payable(address(this));
+    address public recipient = address(this);
 
     /// @notice Error to be used when the paid amount is not enough to cover the tax.
     error NotEnoughPaid();
@@ -32,11 +36,10 @@ contract MEVTax is Ownable {
 
     /// @notice Applies tax if the paid amount is sufficient to cover the tax.
     ///         Otherwise, the function reverts.
-    // TODO: check that this makes sense when the tx already includes msg.value
     function _payTax() internal {
         uint256 taxAmount = _getTaxAmount();
         if (msg.value < taxAmount) revert NotEnoughPaid();
-        if (recipient != address(this)) recipient.transfer(taxAmount);
+        if (recipient != address(this)) currency.transfer(recipient, taxAmount);
     }
 
     /// @notice Returns the tax amount, which is defined as a function of the
