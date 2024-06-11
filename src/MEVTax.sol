@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @title MEVTax
 /// @notice This contract should be inherited by contracts to apply a MEV tax.
@@ -28,12 +28,13 @@ contract MEVTax is Ownable {
     /// @notice Sets the currency used to pay the tax.
     /// @param _currency The new currency used to pay the tax.
     function setCurrency(address _currency) external onlyOwner {
+        // TODO: enforce that the address is a valid ERC20 receiver
         currency = _currency;
     }
 
     /// @notice Sets the recipient of the tax payments.
     /// @param _recipient The new recipient of the tax payments.
-    function setRecipient(address payable _recipient) external onlyOwner {
+    function setRecipient(address _recipient) external onlyOwner {
         recipient = _recipient;
     }
 
