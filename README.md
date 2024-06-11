@@ -21,9 +21,9 @@ The library calculates a tax amount based on the priority fee per gas of the tra
 ```bash
 forge install 0xfuturistic/mev-tax
 ```
-2. Import and inherit `MEVTax.sol` in your smart contract
+2. Import and inherit `MEVTax` in your smart contract
 ```solidity
-import "mev-tax/src/MEVTax.sol";
+import {MEVTax} from "mev-tax/src/MEVTax.sol";
 ```
 3. Apply the `applyTax()` modifier to functions where you want to capture MEV
 4. Optionally, override the `_getTaxAmount()` function for a custom tax function
