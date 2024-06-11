@@ -23,7 +23,9 @@ contract MEVTax is Ownable {
     }
 
     /// @dev Sets the deployer as the initial owner.
-    constructor() Ownable(msg.sender) {}
+    constructor(address _currencyAddress) Ownable(msg.sender) {
+        currency = IERC20(_currencyAddress);
+    }
 
     /// @notice Updates currency to _currency.
     /// @param _currency ERC20 token setting _currency to.

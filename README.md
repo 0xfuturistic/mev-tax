@@ -25,8 +25,13 @@ forge install 0xfuturistic/mev-tax
 ```solidity
 import {MEVTax} from "mev-tax/src/MEVTax.sol";
 ```
-3. Apply the `applyTax()` modifier to functions where you want to capture MEV
-4. Optionally, override the `_getTaxAmount()` function for a custom tax function
+3. Add `MEVTax` to your constructor
+```solidity
+constructor() MEVTax(currencyAddress) {}
+```
+where `currencyAddress` is the address of the ERC20 token you want to use for paying the MEV tax.
+4. Apply the `applyTax()` modifier to functions where you want to capture MEV
+5. Optionally, override the `_getTaxAmount()` function for a custom tax function
 
 ## Limitations
 

@@ -15,6 +15,8 @@ import {MEVTax} from "../src/MEVTax.sol";
 /// @title MEVTaxWithTaxApplied
 /// @notice This contract exposes a function with the applyTax modifier.
 contract MEVTaxWithTaxApplied is MEVTax {
+    constructor(address _currencyAddress) MEVTax(_currencyAddress) {}
+
     /// @notice Mock function that applies the tax.
     function mockTax() external payable applyTax {}
 }
@@ -27,7 +29,7 @@ contract MEVTaxTest is Test {
     function setUp() public {
         mockCurrency = new ERC20Mock();
         mockRecipient = address(0x2);
-        mevTax = new MEVTaxWithTaxApplied();
+        mevTax = new MEVTaxWithTaxApplied(address(mockCurrency));
         mevTax.setCurrency(mockCurrency);
         mevTax.setRecipient(mockRecipient);
     }
