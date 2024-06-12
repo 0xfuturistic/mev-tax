@@ -29,7 +29,9 @@ import {MEVTax} from "mev-tax/src/MEVTax.sol";
 ```solidity
 constructor() MEVTax(currencyAddress) {}
 ```
-where `currencyAddress` is the address of the ERC20 token you want to use for paying the MEV tax.
+where `currencyAddress` is the address of the ERC20 token for paying the MEV tax.
+The implementation works especially well when this is the address of WETH in the network. 
+For other tokens, an exchange rate from eth may be needed to compute the tax accurately.
 4. Apply the `applyTax()` modifier to functions where you want to capture MEV
 5. Optionally, override the `_getTaxAmount()` function for a custom tax function
 
