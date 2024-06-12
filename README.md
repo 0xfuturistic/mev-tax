@@ -34,6 +34,7 @@ The implementation works especially well when this is the address of WETH in the
 For other tokens, an exchange rate from eth may be needed to compute the tax accurately.
 
 4. Apply the `applyTax()` modifier to functions where you want to capture MEV.
+
 Whoever pays for the tax must have enough amount of `currencyAddress` to cover the tax and to have approved at least that amount for the contract. 
 
 5. Optionally, override the `_getTaxAmount()` function for a custom tax function
