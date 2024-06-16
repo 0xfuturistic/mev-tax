@@ -10,7 +10,7 @@ import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
 // Target contract dependencies
 import {MEVTax} from "../src/MEVTax.sol";
-import {Currency} from "@uniswap/v4-core/types/Currency.sol";
+import {Currency} from "src/Currency.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @title MEVTaxWithTaxApplied

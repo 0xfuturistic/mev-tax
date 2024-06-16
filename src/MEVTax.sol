@@ -2,15 +2,18 @@
 pragma solidity ^0.8.13;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {Currency, CurrencyLibrary} from "src/Currency.sol";
 
 /// @title MEVTax
 /// @notice This contract should be inherited by contracts to apply a MEV tax.
 ///         The tax amount is calculated as a function of the priority fee per
 ///         gas of the transaction.
 contract MEVTax is Ownable {
-    /// @notice ERC20 token for paying the tax.
-    IERC20 public currency;
+    error InsufficientValue();
+
+    /// @notice Currency for paying the tax.
+
+    Currency public currency;
 
     /// @notice Recipient of the tax transfers.
     address public recipient = address(this);
@@ -20,18 +23,18 @@ contract MEVTax is Ownable {
     /// @notice Modifier to apply tax on a function.
     ///         If applying the tax fails, the modifier reverts.
     modifier applyTax() {
-        _;
         _applyTax();
+        _;
     }
 
     /// @dev Sets the deployer as the initial owner.
-    constructor(address _currencyAddress) Ownable(msg.sender) {
-        currency = IERC20(_currencyAddress);
+    constructor() Ownable(msg.sender) {
+        currency = CurrencyLibrary.NATIVE;
     }
 
     /// @notice Updates currency to _currency.
     /// @param _currency ERC20 token setting _currency to.
-    function setCurrency(IERC20 _currency) external onlyOwner {
+    function setCurrency(Currency _currency) external onlyOwner {
         currency = _currency;
     }
 
@@ -53,7 +56,13 @@ contract MEVTax is Ownable {
     /// @notice Applies tax by transferring the tax amount (at the tx's priority fee per gas)
     ///         from msg.sender to recipient. If the transfer fails, _payTax reverts.
     function _applyTax() internal {
-        require(currency.transferFrom(msg.sender, recipient, tax(_getPriorityFeePerGas())));
+        uint256 taxAmount = tax(_getPriorityFeePerGas());
+
+        if (currency.isNative() && _msgValue() < taxAmount) {
+            revert InsufficientValue();
+        }
+
+        currency.transferFrom(msg.sender, recipient, taxAmount);
     }
 
     /// @notice Returns the priority fee per gas.
