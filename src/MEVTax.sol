@@ -58,8 +58,9 @@ contract MEVTax is Ownable {
     function _applyTax() internal {
         uint256 taxAmount = tax(_getPriorityFeePerGas());
 
-        if (currency.isNative() && _msgValue() < taxAmount) {
-            revert InsufficientValue();
+        if (currency.isNative()) {
+            if (_msgValue() < taxAmount) revert InsufficientValue();
+            _negDelta += taxAmount;
         }
 
         currency.transferFrom(msg.sender, recipient, taxAmount);
@@ -71,6 +72,9 @@ contract MEVTax is Ownable {
         return tx.gasprice - block.basefee;
     }
 
+    /// @notice Returns the dynamic value of the transaction, accounting for a negative delta
+    //          The negative delta is used to account for the tax amount in the transaction value.
+    /// @return Negative delta-adjusted value of the transaction.
     function _msgValue() internal view virtual returns (uint256) {
         return msg.value - _negDelta;
     }
