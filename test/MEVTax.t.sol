@@ -5,46 +5,45 @@ pragma solidity ^0.8.13;
 import {Test} from "forge-std/Test.sol";
 
 // Libraries
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
 // Target contract dependencies
 import {MEVTax} from "../src/MEVTax.sol";
+import {Currency} from "@uniswap/v4-core/types/Currency.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @title MEVTaxWithTaxApplied
 /// @notice This contract exposes a function with the applyTax modifier.
 contract MEVTaxWithTaxApplied is MEVTax {
-    constructor(address _currencyAddress) MEVTax(_currencyAddress) {}
-
     /// @notice Mock function that applies the tax.
     function mockTax() external payable applyTax {}
 }
 
 contract MEVTaxTest is Test {
-    ERC20Mock mockCurrency;
+    Currency mockCurrency;
     address mockRecipient;
     MEVTaxWithTaxApplied public mevTax;
 
     function setUp() public {
-        mockCurrency = new ERC20Mock();
+        mockCurrency = Currency.wrap(address(new ERC20Mock()));
         mockRecipient = address(0x2);
-        mevTax = new MEVTaxWithTaxApplied(address(mockCurrency));
+        mevTax = new MEVTaxWithTaxApplied();
         mevTax.setCurrency(mockCurrency);
         mevTax.setRecipient(mockRecipient);
     }
 
     /// @dev Tests that the currency can be updated by the owner.
-    function testFuzz_setCurrency_owner_succeeds(IERC20 _currency) public {
-        mevTax.setCurrency(_currency);
-        assertEq(address(mevTax.currency()), address(_currency));
+    function testFuzz_setCurrency_owner_succeeds(address _currencyAddress) public {
+        mevTax.setCurrency(Currency.wrap(_currencyAddress));
+        assertEq(Currency.unwrap(mevTax.currency()), _currencyAddress);
     }
 
     /// @dev Tests that the currency cannot be updated by a non-owner.
-    function testFuzz_setCurrency_notOwner_reverts(IERC20 _currency) public {
+    function testFuzz_setCurrency_notOwner_reverts(address _currencyAddress) public {
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0)));
         vm.prank(address(0));
-        mevTax.setCurrency(_currency);
+        mevTax.setCurrency(Currency.wrap(_currencyAddress));
     }
 
     /// @dev Tests that the recipient can be successfully updated by the owner
@@ -128,7 +127,7 @@ contract MEVTaxTest is Test {
     ///      mockCurrency to this contract and to approve the MEVTax contract
     ///      to spend the minted amount.
     function _mintAndApprove(uint256 _amount) internal {
-        mockCurrency.mint(address(this), _amount);
-        mockCurrency.approve(address(mevTax), _amount);
+        ERC20Mock(Currency.unwrap(mockCurrency)).mint(address(this), _amount);
+        ERC20Mock(Currency.unwrap(mockCurrency)).approve(address(mevTax), _amount);
     }
 }
