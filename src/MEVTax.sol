@@ -15,6 +15,8 @@ contract MEVTax is Ownable {
     /// @notice Recipient of the tax transfers.
     address public recipient = address(this);
 
+    uint256 internal _negDelta = 0;
+
     /// @notice Modifier to apply tax on a function.
     ///         If applying the tax fails, the modifier reverts.
     modifier applyTax() {
@@ -58,5 +60,9 @@ contract MEVTax is Ownable {
     /// @return Priority fee per gas.
     function _getPriorityFeePerGas() internal view returns (uint256) {
         return tx.gasprice - block.basefee;
+    }
+
+    function _msgValue() internal view virtual returns (uint256) {
+        return msg.value - _negDelta;
     }
 }
