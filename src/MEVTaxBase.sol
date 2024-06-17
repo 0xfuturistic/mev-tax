@@ -9,6 +9,9 @@ abstract contract MEVTaxBase is Ownable {
     /// @notice Thrown when the value of the transaction is insufficient.
     error InsufficientMsgValue();
 
+    /// @dev Slot for the delta to account for updates to msg.value.
+    bytes32 public constant MSG_VALUE_DELTA_SLOT = keccak256("MEVTax._msgValueDelta");
+
     /// @notice Currency for paying the tax in native ether.
     address public constant ETH_CURRENCY = address(0);
 
@@ -79,7 +82,8 @@ abstract contract MEVTaxBase is Ownable {
         return tx.gasprice - block.basefee;
     }
 
-    /// @notice Returns the dynamic value of the transaction, accounting for a delta.
+    /// @notice Returns the dynamic value of the transaction, accounting for
+    ///         subtractions to msg.value.
     /// @return Delta-adjusted value of the transaction.
     function _msgValue() internal view virtual returns (uint256) {
         uint256 delta = _msgValueDelta();
@@ -87,9 +91,11 @@ abstract contract MEVTaxBase is Ownable {
         return msg.value - delta;
     }
 
-    /// @notice Returns the delta to account for a change in msg.value.
+    /// @notice Returns the magnitude of the negative delta to account for
+    ///         subtractions to msg.value.
     function _msgValueDelta() internal view virtual returns (uint256);
 
-    /// @notice Updates the delta to account for a change in msg.value.
+    /// @notice Updates the magnitude of the negative delta to account for
+    ///         a change in msg.value.
     function _updateMsgValueDelta(uint256 _delta) internal virtual;
 }
