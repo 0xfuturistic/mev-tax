@@ -10,7 +10,6 @@ import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
 // Target contract dependencies
 import {MEVTax} from "../src/MEVTax.sol";
-import {Currency} from "src/Currency.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @title MEVTaxWithTaxApplied
@@ -21,12 +20,12 @@ contract MEVTaxWithTaxApplied is MEVTax {
 }
 
 contract MEVTaxTest is Test {
-    Currency mockCurrency;
+    address mockCurrency;
     address mockRecipient;
     MEVTaxWithTaxApplied public mevTax;
 
     function setUp() public {
-        mockCurrency = Currency.wrap(address(new ERC20Mock()));
+        mockCurrency = address(new ERC20Mock());
         mockRecipient = address(0x2);
         mevTax = new MEVTaxWithTaxApplied();
         mevTax.setCurrency(mockCurrency);
@@ -35,15 +34,15 @@ contract MEVTaxTest is Test {
 
     /// @dev Tests that the currency can be updated by the owner.
     function testFuzz_setCurrency_owner_succeeds(address _currencyAddress) public {
-        mevTax.setCurrency(Currency.wrap(_currencyAddress));
-        assertEq(Currency.unwrap(mevTax.currency()), _currencyAddress);
+        mevTax.setCurrency(_currencyAddress);
+        assertEq(mevTax.currency(), _currencyAddress);
     }
 
     /// @dev Tests that the currency cannot be updated by a non-owner.
     function testFuzz_setCurrency_notOwner_reverts(address _currencyAddress) public {
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0)));
         vm.prank(address(0));
-        mevTax.setCurrency(Currency.wrap(_currencyAddress));
+        mevTax.setCurrency(_currencyAddress);
     }
 
     /// @dev Tests that the recipient can be successfully updated by the owner
@@ -83,14 +82,14 @@ contract MEVTaxTest is Test {
         // mint the amount and approve the tax
         // since _amount is greater than the tax amount, the tax will be paid
         _mintAndApprove(_amount);
-        assertEq(mockCurrency.balanceOf(address(this)), _amount);
+        assertEq(IERC20(mockCurrency).balanceOf(address(this)), _amount);
 
         // apply the tax
         mevTax.mockTax();
 
         // check that the tax was paid
-        assertEq(mockCurrency.balanceOf(address(this)), _amount - taxAmount);
-        assertEq(mockCurrency.balanceOf(mockRecipient), taxAmount);
+        assertEq(IERC20(mockCurrency).balanceOf(address(this)), _amount - taxAmount);
+        assertEq(IERC20(mockCurrency).balanceOf(mockRecipient), taxAmount);
     }
 
     /// @dev Tests that mockTax reverts when _amount of mockCurrency is
@@ -117,7 +116,7 @@ contract MEVTaxTest is Test {
         // since _amount is lesser than the tax amount, it shouldn't
         // be possible to cover the tax
         _mintAndApprove(_amount);
-        assertEq(mockCurrency.balanceOf(address(this)), _amount);
+        assertEq(IERC20(mockCurrency).balanceOf(address(this)), _amount);
 
         vm.expectRevert();
         mevTax.mockTax();
@@ -127,7 +126,7 @@ contract MEVTaxTest is Test {
     ///      mockCurrency to this contract and to approve the MEVTax contract
     ///      to spend the minted amount.
     function _mintAndApprove(uint256 _amount) internal {
-        ERC20Mock(Currency.unwrap(mockCurrency)).mint(address(this), _amount);
-        ERC20Mock(Currency.unwrap(mockCurrency)).approve(address(mevTax), _amount);
+        ERC20Mock(mockCurrency).mint(address(this), _amount);
+        ERC20Mock(mockCurrency).approve(address(mevTax), _amount);
     }
 }

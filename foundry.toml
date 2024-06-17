@@ -7,4 +7,5 @@ evm_version = "cancun"
 remappings = [
     '@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts',
     '@uniswap/v4-core/=lib/v4-core/src',
+    'solady/=lib/solady/src',
 ]
