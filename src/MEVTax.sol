@@ -48,7 +48,7 @@ contract MEVTax is Ownable {
 
     /// @notice Returns whether the currency is native ether.
     /// @return True if the currency is native ether, and false otherwise.
-    function isCurrencyNative() public view returns (bool) {
+    function isCurrencyETH() public view returns (bool) {
         return currency == ETH_CURRENCY;
     }
 
@@ -66,7 +66,7 @@ contract MEVTax is Ownable {
     function _applyTax() internal {
         uint256 taxAmount = tax(_getPriorityFeePerGas());
 
-        if (isCurrencyNative()) {
+        if (isCurrencyETH()) {
             if (_msgValue() < taxAmount) revert InsufficientMsgValue();
             _msgValueDelta -= int256(taxAmount);
             SafeTransferLib.safeTransferETH(recipient, taxAmount);

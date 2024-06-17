@@ -60,12 +60,66 @@ contract MEVTaxTest is Test {
         mevTax.setRecipient(_recipient);
     }
 
+    /// @dev Tests that isCurrencyETH returns correctly for native currency.
+    function test_isCurrencyETH_native_succeeds() public {
+        assertFalse(mevTax.isCurrencyETH());
+        testFuzz_setCurrency_owner_succeeds(mevTax.ETH_CURRENCY());
+        assertTrue(mevTax.isCurrencyETH());
+    }
+
+    /// @dev Tests that isCurrecyETH returns correctly for non-native currency.
+    function testFuzz_isCurrencyETH_nonNative_succeeds(address _currencyAddress) public {
+        vm.assume(_currencyAddress != mevTax.ETH_CURRENCY());
+        testFuzz_setCurrency_owner_succeeds(mevTax.ETH_CURRENCY());
+        assertTrue(mevTax.isCurrencyETH());
+        testFuzz_setCurrency_owner_succeeds(_currencyAddress);
+        assertFalse(mevTax.isCurrencyETH());
+    }
+
     /// @dev Tests that mockTax succeeds when _amount of mockCurrency is
     ///      successfully transferred to mockRecipient for arbitrary _amount,
     ///      _txGasPrice, and _baseFee.
-    function testFuzz_mockTax_sufficientPaidAmount_succeeds(uint256 _amount, uint256 _txGasPrice, uint256 _baseFee)
-        public
-    {
+    function testFuzz_mockTax_native_sufficientPaidAmount_succeeds(
+        uint256 _amount,
+        uint256 _txGasPrice,
+        uint256 _baseFee
+    ) public {
+        // assume a priority fee equal or greater than zero
+        vm.assume(_txGasPrice >= _baseFee);
+        uint256 priorityFeePerGas = _txGasPrice - _baseFee;
+        // ensure there's no overflow later
+        vm.assume(type(uint256).max / 99 >= priorityFeePerGas);
+        // set the tx gas price and base fee
+        vm.txGasPrice(_txGasPrice);
+        vm.fee(_baseFee);
+        // calculate the tax amount
+        uint256 taxAmount = mevTax.tax(priorityFeePerGas);
+        // bound the amount to be equal or greater than the tax amount
+        _amount = bound(_amount, taxAmount, type(uint256).max);
+
+        // set currency to native ether
+        mevTax.setCurrency(mevTax.ETH_CURRENCY());
+
+        // mint the amount
+        // since _amount is greater than the tax amount, the tax will be paid
+        vm.deal(address(this), _amount);
+        assertEq(address(this).balance, _amount);
+
+        // apply the tax
+        mevTax.mockTax{value: _amount}();
+
+        // check that the tax was paid
+        assertEq(address(mockRecipient).balance, taxAmount);
+    }
+
+    /// @dev Tests that mockTax succeeds when _amount of mockCurrency is
+    ///      successfully transferred to mockRecipient for arbitrary _amount,
+    ///      _txGasPrice, and _baseFee.
+    function testFuzz_mockTax_nonNative_sufficientPaidAmount_succeeds(
+        uint256 _amount,
+        uint256 _txGasPrice,
+        uint256 _baseFee
+    ) public {
         // assume a priority fee equal or greater than zero
         vm.assume(_txGasPrice >= _baseFee);
         uint256 priorityFeePerGas = _txGasPrice - _baseFee;
@@ -95,9 +149,44 @@ contract MEVTaxTest is Test {
     /// @dev Tests that mockTax reverts when _amount of mockCurrency is
     ///      insufficient to cover the tax for arbitrary _amount, _txGasPrice,
     ///      and _baseFee.
-    function testFuzz_mockTax_insufficientPaidAmount_reverts(uint256 _amount, uint256 _txGasPrice, uint256 _baseFee)
-        public
-    {
+    function testFuzz_mockTax_native_insufficientPaidAmount_reverts(
+        uint256 _amount,
+        uint256 _txGasPrice,
+        uint256 _baseFee
+    ) public {
+        // assume a priority fee equal or greater than zero
+        vm.assume(_txGasPrice >= _baseFee);
+        uint256 priorityFeePerGas = _txGasPrice - _baseFee;
+        // ensure there's no overflow later
+        vm.assume(type(uint256).max / 99 >= priorityFeePerGas);
+        // set the tx gas price and base fee
+        vm.txGasPrice(_txGasPrice);
+        vm.fee(_baseFee);
+        // calculate the tax amount
+        uint256 taxAmount = mevTax.tax(priorityFeePerGas);
+        // bound the paid amount to be less than the tax amount
+        vm.assume(taxAmount > 0);
+        _amount = bound(_amount, 0, taxAmount - 1);
+
+        // set currency to native ether
+        mevTax.setCurrency(mevTax.ETH_CURRENCY());
+
+        // mint the amount
+        // since _amount is greater than the tax amount, the tax will be paid
+        vm.deal(address(this), _amount);
+
+        vm.expectRevert(MEVTax.InsufficientMsgValue.selector);
+        mevTax.mockTax{value: _amount}();
+    }
+
+    /// @dev Tests that mockTax reverts when _amount of mockCurrency is
+    ///      insufficient to cover the tax for arbitrary _amount, _txGasPrice,
+    ///      and _baseFee.
+    function testFuzz_mockTax_nonNative_insufficientPaidAmount_reverts(
+        uint256 _amount,
+        uint256 _txGasPrice,
+        uint256 _baseFee
+    ) public {
         // assume a priority fee equal or greater than zero
         vm.assume(_txGasPrice >= _baseFee);
         uint256 priorityFeePerGas = _txGasPrice - _baseFee;
