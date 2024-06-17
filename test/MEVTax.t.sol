@@ -10,6 +10,7 @@ import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
 // Target contract dependencies
 import {MEVTax} from "../src/MEVTax.sol";
+import {MEVTaxBase} from "../src/MEVTaxBase.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @title MEVTaxWithTaxApplied
@@ -175,7 +176,7 @@ contract MEVTaxTest is Test {
         // since _amount is greater than the tax amount, the tax will be paid
         vm.deal(address(this), _amount);
 
-        vm.expectRevert(MEVTax.InsufficientMsgValue.selector);
+        vm.expectRevert(MEVTaxBase.InsufficientMsgValue.selector);
         mevTax.mockTax{value: _amount}();
     }
 
