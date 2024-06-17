@@ -9,7 +9,11 @@ abstract contract MEVTaxBase is Ownable {
     /// @notice Thrown when the value of the transaction is insufficient.
     error InsufficientMsgValue();
 
-    /// @dev Slot for the delta to account for updates to msg.value.
+    /// @notice Thrown when the magnitude of the negative delta to account for
+    ///         subtractions to msg.value is greater than msg.value.
+    error DeltaAdjustedMsgValueUnderflow();
+
+    /// @notice Slot for the delta to account for updates to msg.value.
     bytes32 public constant MSG_VALUE_DELTA_SLOT = keccak256("MEVTax._msgValueDelta");
 
     /// @notice Currency for paying the tax in native ether.
@@ -87,7 +91,7 @@ abstract contract MEVTaxBase is Ownable {
     /// @return Delta-adjusted value of the transaction.
     function _msgValue() internal view virtual returns (uint256) {
         uint256 delta = _msgValueDelta();
-        require(msg.value >= delta, "MEVTax: delta-adjusted msg.value underflow");
+        if (msg.value < delta) revert DeltaAdjustedMsgValueUnderflow();
         return msg.value - delta;
     }
 
