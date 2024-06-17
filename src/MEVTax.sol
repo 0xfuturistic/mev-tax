@@ -68,9 +68,13 @@ contract MEVTax is Ownable {
 
         if (isCurrencyETH()) {
             if (_msgValue() < taxAmount) revert InsufficientMsgValue();
-            _msgValueDelta -= int256(taxAmount);
+            // subtract the tax amount from the delta
+            _updateMsgValueDelta(-1 * int256(taxAmount));
+            // transfer the tax amount
             SafeTransferLib.safeTransferETH(recipient, taxAmount);
         } else {
+            // transfer the tax amount
+            // if the allowance or balance are insufficient, the transfer will automatically revert
             SafeTransferLib.safeTransferFrom(currency, msg.sender, recipient, taxAmount);
         }
     }
@@ -89,5 +93,10 @@ contract MEVTax is Ownable {
             "MEVTax: delta-adjusted msg.value underflow"
         );
         return uint256(int256(msg.value) + _msgValueDelta);
+    }
+
+    /// @notice Updates the delta to account for a change in msg.value.
+    function _updateMsgValueDelta(int256 _delta) internal virtual {
+        _msgValueDelta += _delta;
     }
 }
