@@ -10,15 +10,15 @@ import {Storage} from "optimism/libraries/Storage.sol";
 ///         gas of the transaction.
 contract MEVTax is MEVTaxBase {
     /// @dev Slot for the delta to account for updates to msg.value.
-    bytes32 internal constant _MSG_VALUE_DELTA_SLOT = keccak256("MEVTax._msgValueDelta");
+    bytes32 public constant MSG_VALUE_DELTA_SLOT = keccak256("MEVTax._msgValueDelta");
 
     /// @notice Returns the delta to account for a change in msg.value.
     function _msgValueDelta() internal view override returns (uint256) {
-        return Storage.getUint(_MSG_VALUE_DELTA_SLOT);
+        return Storage.getUint(MSG_VALUE_DELTA_SLOT);
     }
 
     /// @notice Updates the delta to account for a change in msg.value.
     function _updateMsgValueDelta(uint256 _delta) internal override {
-        Storage.setUint(_MSG_VALUE_DELTA_SLOT, _delta);
+        Storage.setUint(MSG_VALUE_DELTA_SLOT, _delta);
     }
 }
