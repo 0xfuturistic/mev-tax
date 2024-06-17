@@ -20,7 +20,7 @@ abstract contract MEVTaxBase is Ownable {
 
     /// @notice Modifier to apply tax on a function.
     ///         If applying the tax fails, the modifier reverts.
-    modifier applyTax() {
+    modifier applyTax() virtual {
         _applyTax();
         _;
     }

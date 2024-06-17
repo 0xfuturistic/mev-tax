@@ -20,6 +20,6 @@ contract MEVTax is MEVTaxBase {
 
     /// @notice Updates the delta to account for a change in msg.value.
     function _updateMsgValueDelta(uint256 _delta) internal override {
-        Storage.setUint(MSG_VALUE_DELTA_SLOT, _delta);
+        Storage.setUint(MSG_VALUE_DELTA_SLOT, _msgValueDelta() + _delta);
     }
 }

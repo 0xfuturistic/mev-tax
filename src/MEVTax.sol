@@ -13,6 +13,11 @@ contract MEVTax is MEVTaxBase {
     /// @dev Slot for the delta to account for updates to msg.value.
     bytes32 public constant MSG_VALUE_DELTA_SLOT = keccak256("MEVTax._msgValueDelta");
 
+    modifier applyTax() override {
+        _applyTax();
+        _;
+    }
+
     /// @notice Returns the delta to account for a change in msg.value.
     function _msgValueDelta() internal view override returns (uint256) {
         return TransientContext.get(MSG_VALUE_DELTA_SLOT);
@@ -20,6 +25,6 @@ contract MEVTax is MEVTaxBase {
 
     /// @notice Updates the delta to account for a change in msg.value.
     function _updateMsgValueDelta(uint256 _delta) internal override {
-        TransientContext.set(MSG_VALUE_DELTA_SLOT, _delta);
+        TransientContext.set(MSG_VALUE_DELTA_SLOT, _msgValueDelta() + _delta);
     }
 }
