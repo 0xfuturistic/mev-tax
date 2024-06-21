@@ -20,13 +20,6 @@ contract MEVTaxWithTaxApplied is MEVTax {
     function mockTax() external payable applyTax {}
 }
 
-/// @title MEVTaxWithTaxAppliedLegacy
-/// @notice This contract exposes a function with the applyTax modifier.
-contract MEVTaxWithTaxAppliedLegacy is MEVTax {
-    /// @notice Mock function that applies the tax.
-    function mockTax() external payable applyTax {}
-}
-
 contract MEVTaxTest is Test {
     address mockCurrency;
     address mockRecipient;
