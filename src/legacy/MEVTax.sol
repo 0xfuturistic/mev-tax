@@ -21,4 +21,9 @@ contract MEVTax is MEVTaxBase {
     function _updateMsgValueDelta(uint256 _delta) internal override {
         Storage.setUint(MSG_VALUE_DELTA_SLOT, _msgValueDelta() + _delta);
     }
+
+    /// @notice After applying the tax, resets the slot to zero.
+    function _afterApplyTax() internal override {
+        Storage.setUint(MSG_VALUE_DELTA_SLOT, 0);
+    }
 }

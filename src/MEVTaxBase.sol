@@ -30,6 +30,7 @@ abstract contract MEVTaxBase is Ownable {
     modifier applyTax() virtual {
         _applyTax();
         _;
+        _afterApplyTax();
     }
 
     /// @dev Sets the deployer as the initial owner.
@@ -79,6 +80,9 @@ abstract contract MEVTaxBase is Ownable {
             SafeTransferLib.safeTransferFrom(currency, msg.sender, recipient, taxAmount);
         }
     }
+
+    /// @notice After applying the tax, performs any necessary cleanup.
+    function _afterApplyTax() internal virtual {}
 
     /// @notice Returns the current priority fee per gas.
     /// @return Priority fee per gas.
