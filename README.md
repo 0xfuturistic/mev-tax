@@ -1,6 +1,6 @@
 # 🩸 MEV-Tax: A Solidity Library for MEV Taxes
 
-MEV-Tax provides a simple way for developers to incorporate [MEV taxes](https://www.paradigm.xyz/2024/06/priority-is-all-you-need) into their contracts, enabling the contracts to automatically capture MEV.
+MEV-Tax provides a simple way for developers to incorporate [MEV taxes](https://www.paradigm.xyz/2024/06/priority-is-all-you-need) into their contracts, enabling them to automatically capture MEV based on the priority fee.
 
 ## Features
 
