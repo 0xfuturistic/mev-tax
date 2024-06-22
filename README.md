@@ -5,13 +5,13 @@ MEV-Tax provides a simple way for developers to incorporate [MEV taxes](https://
 ## Features
 
 - Easy integration with existing smart contracts
-- Robust tax calculation based on transaction priority fee
+- Tax calculation based on transaction priority fee
 - Customizable tax recipient
 - Enables various use cases for MEV mitigation (e.g., DEX routers, AMMs, backrunning auctions)
 
 ## How it Works
 
-Background: [Priority Is All You Need](https://www.paradigm.xyz/2024/06/priority-is-all-you-need) by Paradigm.
+Background: [Priority Is All You Need](https://www.paradigm.xyz/2024/06/priority-is-all-you-need) by Dan Robinson and Dave White (Paradigm).
 
 The library calculates a tax amount based on the priority fee per gas of the transaction. When a function with the `applyTax()` modifier is called, the library tries to transfer a sufficient amount of an ERC20 currency to cover the tax. If that succeeds, the transaction proceeds. Otherwise, the transaction reverts.
 
