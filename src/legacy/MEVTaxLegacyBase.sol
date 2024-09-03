@@ -4,8 +4,8 @@ pragma solidity ^0.8.13;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 
-/// @title MEVTaxBase
-abstract contract MEVTaxBase is Ownable {
+/// @title MEVTaxLegacyBase
+abstract contract MEVTaxLegacyBase is Ownable {
     /// @notice Thrown when the value of the transaction is insufficient.
     error InsufficientMsgValue();
 

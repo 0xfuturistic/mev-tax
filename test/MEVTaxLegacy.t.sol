@@ -9,13 +9,13 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
 // Target contract dependencies
-import {MEVTax} from "../src/legacy/MEVTax.sol";
-import {MEVTaxBase} from "../src/MEVTaxBase.sol";
+import {MEVTaxLegacy} from "../src/legacy/MEVTaxLegacy.sol";
+import {MEVTaxLegacyBase} from "../src/legacy/MEVTaxLegacyBase.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @title MEVTaxWithTaxApplied
 /// @notice This contract exposes a function with the applyTax modifier.
-contract MEVTaxWithTaxAppliedLegacy is MEVTax {
+contract MEVTaxWithTaxAppliedLegacy is MEVTaxLegacy {
     /// @notice Mock function that applies the tax.
     function mockTax() external payable applyTax {}
 }
@@ -176,7 +176,7 @@ contract MEVTaxLegacyTest is Test {
         // since _amount is greater than the tax amount, the tax will be paid
         vm.deal(address(this), _amount);
 
-        vm.expectRevert(MEVTaxBase.InsufficientMsgValue.selector);
+        vm.expectRevert(MEVTaxLegacyBase.InsufficientMsgValue.selector);
         mevTaxLegacy.mockTax{value: _amount}();
     }
 

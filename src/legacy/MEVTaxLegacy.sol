@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {MEVTaxBase} from "src/MEVTaxBase.sol";
+import {MEVTaxLegacyBase} from "src/legacy/MEVTaxLegacyBase.sol";
 import {Storage} from "optimism/libraries/Storage.sol";
 
-/// @title  MEVTax
+/// @title  MEVTaxLegacy
 /// @notice This contract should be inherited by contracts to apply a MEV tax.
 ///         The tax amount is calculated as a function of the priority fee per
 ///         gas of the transaction.
 /// @dev    This contract uses regular storage to store the delta for msg.value.
-contract MEVTax is MEVTaxBase {
+contract MEVTaxLegacy is MEVTaxLegacyBase {
     /// @notice Returns the magnitude of the negative delta to account for
     ///         subtractions to msg.value.
     function _msgValueDelta() internal view override returns (uint256) {

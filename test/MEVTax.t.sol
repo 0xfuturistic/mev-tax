@@ -10,7 +10,7 @@ import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
 // Target contract dependencies
 import {MEVTax} from "../src/MEVTax.sol";
-import {MEVTaxBase} from "../src/MEVTaxBase.sol";
+import {MEVTaxBase, MevTaxLib} from "../src/library/MevTaxLib.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @title MEVTaxWithTaxApplied
@@ -64,14 +64,14 @@ contract MEVTaxTest is Test {
     /// @dev Tests that isCurrencyETH returns correctly for native currency.
     function test_isCurrencyETH_native_succeeds() public {
         assertFalse(mevTax.isCurrencyETH());
-        testFuzz_setCurrency_owner_succeeds(mevTax.ETH_CURRENCY());
+        testFuzz_setCurrency_owner_succeeds(MevTaxLib.ETH_CURRENCY);
         assertTrue(mevTax.isCurrencyETH());
     }
 
     /// @dev Tests that isCurrecyETH returns correctly for non-native currency.
     function testFuzz_isCurrencyETH_nonNative_succeeds(address _currencyAddress) public {
-        vm.assume(_currencyAddress != mevTax.ETH_CURRENCY());
-        testFuzz_setCurrency_owner_succeeds(mevTax.ETH_CURRENCY());
+        vm.assume(_currencyAddress != MevTaxLib.ETH_CURRENCY);
+        testFuzz_setCurrency_owner_succeeds(MevTaxLib.ETH_CURRENCY);
         assertTrue(mevTax.isCurrencyETH());
         testFuzz_setCurrency_owner_succeeds(_currencyAddress);
         assertFalse(mevTax.isCurrencyETH());
@@ -99,7 +99,7 @@ contract MEVTaxTest is Test {
         _amount = bound(_amount, taxAmount, type(uint256).max);
 
         // set currency to native ether
-        mevTax.setCurrency(mevTax.ETH_CURRENCY());
+        mevTax.setCurrency(MevTaxLib.ETH_CURRENCY);
 
         // mint the amount
         // since _amount is greater than the tax amount, the tax will be paid
@@ -170,7 +170,7 @@ contract MEVTaxTest is Test {
         _amount = bound(_amount, 0, taxAmount - 1);
 
         // set currency to native ether
-        mevTax.setCurrency(mevTax.ETH_CURRENCY());
+        mevTax.setCurrency(MevTaxLib.ETH_CURRENCY);
 
         // mint the amount
         // since _amount is greater than the tax amount, the tax will be paid
